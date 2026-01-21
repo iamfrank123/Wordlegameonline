@@ -2,13 +2,19 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 
+const path = require('path');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '.')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const rooms = {};
 const duelloRooms = {};
@@ -1798,14 +1804,14 @@ server.listen(PORT, () => {
 });
 
 function checkWord(guess, secret) {
-    const feedback = new Array(5).fill('absent');
+    const feedback = new Array(5).fill('not-in-word');
     const secretArr = secret.split('');
     const guessArr = guess.split('');
 
     // First pass: Correct position
     for (let i = 0; i < 5; i++) {
         if (guessArr[i] === secretArr[i]) {
-            feedback[i] = 'correct';
+            feedback[i] = 'correct-position';
             secretArr[i] = null;
             guessArr[i] = null;
         }
@@ -1814,7 +1820,7 @@ function checkWord(guess, secret) {
     // Second pass: Wrong position
     for (let i = 0; i < 5; i++) {
         if (guessArr[i] && secretArr.includes(guessArr[i])) {
-            feedback[i] = 'present';
+            feedback[i] = 'wrong-position';
             const index = secretArr.indexOf(guessArr[i]);
             secretArr[index] = null;
         }
